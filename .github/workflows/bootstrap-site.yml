@@ -1,0 +1,82 @@
+name: Bootstrap site files
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bootstrap-site.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download deployment bundle
+        env:
+          SHARE_URL: https://firestorage.ai/ja/f/9_bclHB8pZ64
+        run: |
+          python - <<'PY'
+          import os, re, sys, zipfile
+          from urllib.parse import urljoin
+          import requests
+
+          share = os.environ['SHARE_URL']
+          s = requests.Session()
+          s.headers.update({'User-Agent': 'Mozilla/5.0'})
+
+          def get(url):
+              r = s.get(url, timeout=30, allow_redirects=True)
+              print('GET', url, '->', r.status_code, r.url, r.headers.get('content-type'), len(r.content))
+              return r
+
+          r = get(share)
+          candidates = []
+          if r.content[:2] == b'PK':
+              open('/tmp/site.zip','wb').write(r.content)
+          else:
+              text = r.text
+              print('PAGE_HEAD_START')
+              print(text[:12000])
+              print('PAGE_HEAD_END')
+              for m in re.findall(r'''(?:href|src)=["']([^"']+)["']''', text, re.I):
+                  u = urljoin(r.url, m.replace('&amp;', '&'))
+                  if any(k in u.lower() for k in ['download', '.zip', 'file', 'attachment']):
+                      candidates.append(u)
+              for m in re.findall(r'''https?://[^"'<>\\s]+''', text):
+                  if any(k in m.lower() for k in ['download', '.zip', 'file', 'attachment']):
+                      candidates.append(m.replace('\\u0026','&'))
+              print('CANDIDATES', candidates[:50])
+              for u in dict.fromkeys(candidates):
+                  try:
+                      rr = get(u)
+                      if rr.content[:2] == b'PK':
+                          open('/tmp/site.zip','wb').write(rr.content)
+                          break
+                  except Exception as e:
+                      print('candidate failed', u, repr(e))
+
+          if not os.path.exists('/tmp/site.zip'):
+              print('Could not resolve a ZIP download from the share page.')
+              sys.exit(2)
+          with zipfile.ZipFile('/tmp/site.zip') as z:
+              print('ZIP files:', z.namelist())
+          PY
+
+      - name: Replace repository with site bundle
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name .github -exec rm -rf {} +
+          unzip -q -o /tmp/site.zip -d .
+          rm -rf .github/workflows
+
+      - name: Commit site
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Deploy Alibek brand site source' || exit 0
+          git push
