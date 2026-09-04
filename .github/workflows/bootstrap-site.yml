@@ -16,56 +16,126 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download deployment bundle
-        env:
-          SHARE_URL: https://firestorage.ai/ja/f/9_bclHB8pZ64
+      - name: Install headless browser
         run: |
-          python - <<'PY'
-          import os, re, sys, zipfile
-          from urllib.parse import urljoin
-          import requests
+          mkdir -p /tmp/pw && cd /tmp/pw
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.58.2 >/dev/null 2>&1
+          npx playwright install chromium
 
-          share = os.environ['SHARE_URL']
-          s = requests.Session()
-          s.headers.update({'User-Agent': 'Mozilla/5.0'})
+      - name: Download deployment bundle through browser
+        env:
+          SHARE_URL: https://firestorage.ai/en/f/9_bclHB8pZ64
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { chromium } = require('/tmp/pw/node_modules/playwright');
 
-          def get(url):
-              r = s.get(url, timeout=30, allow_redirects=True)
-              print('GET', url, '->', r.status_code, r.url, r.headers.get('content-type'), len(r.content))
-              return r
+          const share = process.env.SHARE_URL;
+          const out = '/tmp/site.zip';
 
-          r = get(share)
-          candidates = []
-          if r.content[:2] == b'PK':
-              open('/tmp/site.zip','wb').write(r.content)
-          else:
-              text = r.text
-              print('PAGE_HEAD_START')
-              print(text[:12000])
-              print('PAGE_HEAD_END')
-              for m in re.findall(r'''(?:href|src)=["']([^"']+)["']''', text, re.I):
-                  u = urljoin(r.url, m.replace('&amp;', '&'))
-                  if any(k in u.lower() for k in ['download', '.zip', 'file', 'attachment']):
-                      candidates.append(u)
-              for m in re.findall(r'''https?://[^"'<>\\s]+''', text):
-                  if any(k in m.lower() for k in ['download', '.zip', 'file', 'attachment']):
-                      candidates.append(m.replace('\\u0026','&'))
-              print('CANDIDATES', candidates[:50])
-              for u in dict.fromkeys(candidates):
-                  try:
-                      rr = get(u)
-                      if rr.content[:2] == b'PK':
-                          open('/tmp/site.zip','wb').write(rr.content)
-                          break
-                  except Exception as e:
-                      print('candidate failed', u, repr(e))
+          function looksZip(buf) {
+            return buf && buf.length > 3 && buf[0] === 0x50 && buf[1] === 0x4b;
+          }
 
-          if not os.path.exists('/tmp/site.zip'):
-              print('Could not resolve a ZIP download from the share page.')
-              sys.exit(2)
-          with zipfile.ZipFile('/tmp/site.zip') as z:
-              print('ZIP files:', z.namelist())
-          PY
+          async function saveResponse(resp) {
+            try {
+              const headers = await resp.allHeaders();
+              const ct = (headers['content-type'] || '').toLowerCase();
+              const cd = (headers['content-disposition'] || '').toLowerCase();
+              const url = resp.url();
+              if (ct.includes('zip') || cd.includes('attachment') || /\.zip(?:\?|$)/i.test(url)) {
+                const body = await resp.body();
+                console.log('ZIP-like response', resp.status(), ct, cd, url, body.length);
+                if (looksZip(body)) {
+                  fs.writeFileSync(out, body);
+                  return true;
+                }
+              }
+            } catch (_) {}
+            return false;
+          }
+
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const context = await browser.newContext({acceptDownloads:true});
+            const page = await context.newPage();
+
+            page.on('response', async resp => {
+              const headers = await resp.allHeaders().catch(()=>({}));
+              const ct = (headers['content-type'] || '').toLowerCase();
+              const url = resp.url();
+              if (ct.includes('json') || /api|download|share|file/i.test(url)) {
+                console.log('RESP', resp.status(), ct, url);
+                if (ct.includes('json')) {
+                  const txt = await resp.text().catch(()=> '');
+                  if (txt) console.log('JSON', txt.slice(0, 6000));
+                }
+              }
+              await saveResponse(resp);
+            });
+
+            console.log('OPEN', share);
+            await page.goto(share, {waitUntil:'domcontentloaded', timeout:60000});
+            await page.waitForTimeout(7000);
+            console.log('URL', page.url());
+            console.log('BODY', (await page.locator('body').innerText()).slice(0,12000));
+
+            const links = await page.locator('a').evaluateAll(as => as.map(a => ({text:(a.innerText||'').trim(), href:a.href, download:a.download})).filter(x=>x.href));
+            const buttons = await page.locator('button').evaluateAll(bs => bs.map(b => ({text:(b.innerText||'').trim(), disabled:b.disabled})));
+            console.log('LINKS', JSON.stringify(links.slice(0,100), null, 2));
+            console.log('BUTTONS', JSON.stringify(buttons.slice(0,100), null, 2));
+
+            if (!fs.existsSync(out)) {
+              const direct = links.find(x => /download|\.zip|attachment|object|storage/i.test(x.href) || /ALIBEK-GITHUB-READY\.zip/i.test(x.text));
+              if (direct) {
+                console.log('Trying direct link', direct.href);
+                const rr = await context.request.get(direct.href, {timeout:60000});
+                const body = await rr.body();
+                console.log('DIRECT', rr.status(), rr.headers()['content-type'], body.length);
+                if (looksZip(body)) fs.writeFileSync(out, body);
+              }
+            }
+
+            if (!fs.existsSync(out)) {
+              const candidates = page.getByRole('button').filter({hasText:/download|ダウンロード/i});
+              const n = await candidates.count();
+              console.log('Download-like buttons', n);
+              for (let i=0; i<n && !fs.existsSync(out); i++) {
+                const b = candidates.nth(i);
+                console.log('CLICK', await b.innerText().catch(()=>''));
+                try {
+                  const dlPromise = page.waitForEvent('download', {timeout:15000}).catch(()=>null);
+                  await b.click({timeout:10000});
+                  const dl = await dlPromise;
+                  if (dl) {
+                    console.log('DOWNLOAD', dl.suggestedFilename(), dl.url());
+                    await dl.saveAs(out);
+                    break;
+                  }
+                  await page.waitForTimeout(3000);
+                } catch (e) { console.log('click failed', String(e)); }
+              }
+            }
+
+            if (!fs.existsSync(out)) {
+              const fileText = page.getByText(/ALIBEK-GITHUB-READY\.zip/i).first();
+              if (await fileText.count()) {
+                console.log('Trying filename element click');
+                const dlPromise = page.waitForEvent('download', {timeout:15000}).catch(()=>null);
+                await fileText.click().catch(e=>console.log('filename click failed', String(e)));
+                const dl = await dlPromise;
+                if (dl) await dl.saveAs(out);
+              }
+            }
+
+            await browser.close();
+            if (!fs.existsSync(out)) throw new Error('Browser could not resolve the ZIP download');
+            const b = fs.readFileSync(out);
+            if (!looksZip(b)) throw new Error('Downloaded file is not a ZIP');
+            console.log('Saved ZIP bytes:', b.length);
+          })().catch(e => { console.error(e); process.exit(2); });
+          NODE
 
       - name: Replace repository with site bundle
         run: |
