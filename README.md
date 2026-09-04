@@ -1,14 +1,20 @@
-# Alibek Ermagambetov — Personal Brand Site
+# Alibek Yermagambetov — personal brand website
 
-Static personal brand website prepared for deployment on Vercel.
+Static multi-page website for Alibek Yermagambetov.
 
 ## Structure
-- `index.html` — Home
-- `about.html` — About
-- `projects.html` — Projects
-- `media.html` — Media
-- `cooperation.html` — Cooperation
-- `styles.css`, `script.js`, `site-config.js`
-- `assets/` — optimized WebP images
+- `index.html` — home
+- `about.html` — about
+- `projects.html` — projects
+- `media.html` — media/audience
+- `cooperation.html` — cooperation form
+- `site-config.js` — contacts, social links, stats and prices
+- `styles.css` — styles
+- `script.js` — interactions and WhatsApp form
+- `assets/` — local images
 
-Built as a lightweight static HTML/CSS/JS site.
+## Local preview
+Open `index.html` directly, or run any static HTTP server in this folder.
+
+## Vercel
+Framework preset: **Other**. No build command is required. Output directory: project root.
