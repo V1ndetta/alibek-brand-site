@@ -30,10 +30,67 @@
   document.querySelectorAll('.desktop-nav a').forEach(a => a.addEventListener('click', () => { header.classList.remove('menu-open'); menuBtn?.setAttribute('aria-expanded','false'); if (menuBtn) menuBtn.textContent='☰'; }));
 
   const form = document.getElementById('adBriefForm');
-  form?.addEventListener('submit', (e) => {
+  const formStatus = document.getElementById('formStatus');
+  const submitBtn = form?.querySelector('button[type="submit"]');
+
+  const buildWhatsAppText = (data) => [
+    'Новая заявка на сотрудничество с Алибеком Ермагамбетовым',
+    '',
+    `Компания / бренд: ${data.company}`,
+    `Контактное лицо: ${data.name}`,
+    `Телефон: ${data.phone}`,
+    `Email: ${data.email || '—'}`,
+    `Ссылка на бренд: ${data.brandLink || '—'}`,
+    `Формат: ${data.format}`,
+    `Бюджет: ${data.budget}`,
+    `Желаемая дата: ${data.date || '—'}`,
+    '',
+    'Задача:',
+    String(data.message || '')
+  ].join('\n');
+
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
-    const text = ['Новая заявка на сотрудничество с Алибеком Ермагамбетовым','',`Компания / бренд: ${fd.get('company')}`,`Контактное лицо: ${fd.get('name')}`,`Телефон: ${fd.get('phone')}`,`Email: ${fd.get('email') || '—'}`,`Ссылка на бренд: ${fd.get('brandLink') || '—'}`,`Формат: ${fd.get('format')}`,`Бюджет: ${fd.get('budget')}`,`Желаемая дата: ${fd.get('date') || '—'}`,'','Задача:',String(fd.get('message') || '')].join('\n');
-    window.open(`https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    const payload = Object.fromEntries(fd.entries());
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправляем…';
+    }
+    if (formStatus) formStatus.textContent = 'Отправляем заявку…';
+
+    try {
+      const response = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok && result.ok) {
+        if (formStatus) formStatus.textContent = 'Заявка отправлена. Менеджер свяжется с вами.';
+        form.reset();
+        return;
+      }
+
+      if (result.code === 'bitrix_not_configured') {
+        const text = buildWhatsAppText(payload);
+        window.open(`https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+        if (formStatus) formStatus.textContent = 'CRM ещё не подключена — открыли готовое сообщение в WhatsApp.';
+        return;
+      }
+
+      throw new Error(result.error || 'Не удалось отправить заявку');
+    } catch (error) {
+      const text = buildWhatsAppText(payload);
+      window.open(`https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+      if (formStatus) formStatus.textContent = 'Не удалось отправить в CRM — открыли резервную отправку через WhatsApp.';
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Отправить предложение';
+      }
+    }
   });
 })();
