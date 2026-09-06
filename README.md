@@ -18,3 +18,5 @@ Open `index.html` directly, or run any static HTTP server in this folder.
 
 ## Vercel
 Framework preset: **Other**. No build command is required. Output directory: project root.
+
+Deployment sync trigger: 2026-09-06.
