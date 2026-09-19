@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    if (!['narodnoe', 'cooperation'].includes(body.submissionType)) {
+    if (!['business', 'media', 'social'].includes(body.submissionType)) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ ok: false, error: 'Invalid submission type' }));
     }
@@ -21,7 +21,9 @@ module.exports = async function handler(req, res) {
     const submissionType = body.submissionType;
     const required = ['company', 'name', 'phone', 'email', 'brandLink', 'message'];
 
-    if (submissionType === 'narodnoe') {
+    if (submissionType === 'business') {
+      required.push('businessIntent', 'businessCity', 'businessBudget');
+    } else if (submissionType === 'social') {
       required.push('project', 'supplierCategory', 'contributionType', 'city', 'offerVolume');
     } else {
       required.push('format', 'budget', 'date');
@@ -58,41 +60,54 @@ module.exports = async function handler(req, res) {
     }
 
     const submittedAt = new Date().toISOString();
-    const isProjectLead = submissionType === 'narodnoe';
+    const isBusinessLead = submissionType === 'business';
+    const isSocialLead = submissionType === 'social';
 
-    const title = isProjectLead
-      ? `Народное строительство — ${body.company}`
-      : `Сотрудничество — ${body.company}`;
+    const title = isBusinessLead
+      ? `Бизнес — ${body.company}`
+      : (isSocialLead ? `Народные проекты — ${body.company}` : `Медиа — ${body.company}`);
 
-    const source = isProjectLead
-      ? 'Сайт Алибек Ермагамбетов — Народное строительство'
-      : 'Сайт Алибек Ермагамбетов — Сотрудничество';
+    const source = isBusinessLead
+      ? 'Сайт Алибек Ермагамбетов — Бизнес и недвижимость'
+      : (isSocialLead ? 'Сайт Алибек Ермагамбетов — Народные проекты' : 'Сайт Алибек Ермагамбетов — Медиа и сотрудничество');
 
-    const comments = isProjectLead
+    const comments = isBusinessLead
       ? [
-          'Тип обращения: Народное строительство',
-          `Проект: ${body.project || '—'}`,
-          `Бренд / компания: ${body.company}`,
+          'Тип обращения: Бизнес и недвижимость',
+          `Компания / контакт: ${body.company}`,
           `Сайт / Instagram: ${body.brandLink || '—'}`,
-          `Сфера: ${body.supplierCategory || '—'}`,
-          `Формат участия: ${body.contributionType || '—'}`,
-          `Город компании: ${body.city || '—'}`,
-          `Масштаб предложения: ${body.offerVolume || '—'}`,
+          `Цель: ${body.businessIntent || '—'}`,
+          `Город / регион: ${body.businessCity || '—'}`,
+          `Бюджет / масштаб: ${body.businessBudget || '—'}`,
           '',
-          'Что готовы предоставить:',
+          'Описание:',
           body.message || '—'
         ].join('\n')
-      : [
-          'Тип обращения: Сотрудничество / реклама',
-          `Бренд / компания: ${body.company}`,
-          `Ссылка на бренд: ${body.brandLink || '—'}`,
-          `Формат сотрудничества: ${body.format || '—'}`,
-          `Бюджет: ${body.budget || '—'}`,
-          `Желаемая дата: ${body.date || '—'}`,
-          '',
-          'Задача:',
-          body.message || '—'
-        ].join('\n');
+      : (isSocialLead
+        ? [
+            'Тип обращения: Народные проекты',
+            `Проект: ${body.project || '—'}`,
+            `Бренд / компания: ${body.company}`,
+            `Сайт / Instagram: ${body.brandLink || '—'}`,
+            `Сфера: ${body.supplierCategory || '—'}`,
+            `Формат участия: ${body.contributionType || '—'}`,
+            `Город компании: ${body.city || '—'}`,
+            `Масштаб предложения: ${body.offerVolume || '—'}`,
+            '',
+            'Что готовы предоставить:',
+            body.message || '—'
+          ].join('\n')
+        : [
+            'Тип обращения: Медиа и сотрудничество',
+            `Бренд / компания: ${body.company}`,
+            `Ссылка на бренд: ${body.brandLink || '—'}`,
+            `Формат сотрудничества: ${body.format || '—'}`,
+            `Бюджет: ${body.budget || '—'}`,
+            `Желаемая дата: ${body.date || '—'}`,
+            '',
+            'Задача:',
+            body.message || '—'
+          ].join('\n'));
 
     const delivery = {
       bitrix: { configured: Boolean(bitrixWebhookBase), ok: false, id: null },
@@ -133,22 +148,31 @@ module.exports = async function handler(req, res) {
 
     if (googleSheetsWebhookUrl) {
       try {
-        const sheetFormat = isProjectLead
-          ? `Народное строительство · ${body.supplierCategory || '—'}`
-          : (body.format || '');
+        const sheetFormat = isBusinessLead
+          ? `Бизнес · ${body.businessIntent || '—'}`
+          : (isSocialLead ? `Народные проекты · ${body.supplierCategory || '—'}` : (body.format || ''));
 
-        const sheetMessage = isProjectLead
+        const sheetMessage = isBusinessLead
           ? [
-              `Проект: ${body.project || '—'}`,
-              `Сфера: ${body.supplierCategory || '—'}`,
-              `Формат участия: ${body.contributionType || '—'}`,
-              `Город: ${body.city || '—'}`,
-              `Масштаб: ${body.offerVolume || '—'}`,
+              `Цель: ${body.businessIntent || '—'}`,
+              `Город / регион: ${body.businessCity || '—'}`,
+              `Бюджет / масштаб: ${body.businessBudget || '—'}`,
               '',
-              'Предложение:',
+              'Описание:',
               body.message || '—'
             ].join('\n')
-          : (body.message || '');
+          : (isSocialLead
+            ? [
+                `Проект: ${body.project || '—'}`,
+                `Сфера: ${body.supplierCategory || '—'}`,
+                `Формат участия: ${body.contributionType || '—'}`,
+                `Город: ${body.city || '—'}`,
+                `Масштаб: ${body.offerVolume || '—'}`,
+                '',
+                'Предложение:',
+                body.message || '—'
+              ].join('\n')
+            : (body.message || ''));
 
         const response = await fetch(googleSheetsWebhookUrl, {
           method: 'POST',
@@ -162,8 +186,8 @@ module.exports = async function handler(req, res) {
             email: body.email || '',
             brandLink: body.brandLink || '',
             format: sheetFormat,
-            budget: isProjectLead ? '' : (body.budget || ''),
-            date: isProjectLead ? '' : (body.date || ''),
+            budget: isBusinessLead ? (body.businessBudget || '') : (isSocialLead ? '' : (body.budget || '')),
+            date: (isBusinessLead || isSocialLead) ? '' : (body.date || ''),
             message: sheetMessage,
             source,
             bitrixId: delivery.bitrix.id || '',
