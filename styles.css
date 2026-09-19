@@ -151,3 +151,91 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}.noise{poi
 @media(max-width:640px){
   .media-metrics .social-metric-kicker{font-size:9px;line-height:1.45}
 }
+
+
+/* COOPERATION — DYNAMIC PROJECT / AD BRIEF */
+.form-entry-selector{
+  margin-bottom:24px;
+  padding:22px;
+  border:1px solid rgba(111,166,255,.28);
+  border-radius:20px;
+  background:radial-gradient(circle at 92% 8%,rgba(79,140,255,.16),transparent 38%),rgba(255,255,255,.018);
+}
+.form-entry-selector label{margin-bottom:10px}
+.form-entry-selector label>span{
+  color:#cfe1ff;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.form-entry-selector select{
+  min-height:58px;
+  border-color:rgba(120,170,255,.32);
+  background:#091626;
+  font-weight:800;
+}
+.form-entry-selector p{
+  margin:10px 0 0;
+  color:#7f95ad;
+  font-size:12px;
+  line-height:1.55;
+}
+.form-common-fields{
+  padding-top:6px;
+}
+.form-branch{
+  margin-top:10px;
+  padding-top:24px;
+  border-top:1px solid var(--line);
+}
+.form-branch[hidden],
+.form-common-fields[hidden]{
+  display:none!important;
+}
+.form-branch-head{
+  margin-bottom:24px;
+  padding:18px 20px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+.form-branch-head>span{
+  display:block;
+  margin-bottom:6px;
+  color:#ddebff;
+  font-size:13px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.form-branch-head p{
+  margin:0;
+  color:#879bb1;
+  font-size:12px;
+  line-height:1.6;
+}
+.project-branch-head{
+  border-color:rgba(111,166,255,.25);
+  background:linear-gradient(135deg,rgba(79,140,255,.11),rgba(255,255,255,.018));
+}
+.project-branch-head>span{
+  color:#aecdff;
+}
+#dynamicSubmitBtn:disabled{
+  cursor:not-allowed;
+  opacity:.45;
+  transform:none;
+  box-shadow:none;
+}
+.brief-form select{
+  cursor:pointer;
+}
+.brief-form option{
+  background:#081321;
+  color:#fff;
+}
+@media(max-width:640px){
+  .form-entry-selector{padding:17px}
+  .form-entry-selector select{min-height:54px}
+  .form-branch-head{padding:16px}
+}
