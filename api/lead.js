@@ -13,13 +13,18 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    const submissionType = body.submissionType === 'narodnoe' ? 'narodnoe' : 'cooperation';
-    const required = ['company', 'name', 'phone', 'message'];
+    if (!['narodnoe', 'cooperation'].includes(body.submissionType)) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ ok: false, error: 'Invalid submission type' }));
+    }
+
+    const submissionType = body.submissionType;
+    const required = ['company', 'name', 'phone', 'email', 'brandLink', 'message'];
 
     if (submissionType === 'narodnoe') {
-      required.push('project', 'supplierCategory', 'contributionType');
+      required.push('project', 'supplierCategory', 'contributionType', 'city', 'offerVolume');
     } else {
-      required.push('format');
+      required.push('format', 'budget', 'date');
     }
 
     const missing = required.filter((key) => !String(body[key] || '').trim());
@@ -28,6 +33,24 @@ module.exports = async function handler(req, res) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ ok: false, error: `Missing fields: ${missing.join(', ')}` }));
     }
+
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(body.email || '').trim());
+    if (!emailValid) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ ok: false, error: 'Invalid email' }));
+    }
+
+    const phoneDigits = String(body.phone || '').replace(/\D/g, '');
+    const normalizedPhoneDigits = phoneDigits.length === 11 && phoneDigits.startsWith('7')
+      ? phoneDigits
+      : (phoneDigits.length === 10 ? `7${phoneDigits}` : '');
+
+    if (!normalizedPhoneDigits || normalizedPhoneDigits.length !== 11) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ ok: false, error: 'Invalid phone' }));
+    }
+
+    body.phone = `+7 (${normalizedPhoneDigits.slice(1, 4)}) ${normalizedPhoneDigits.slice(4, 7)}-${normalizedPhoneDigits.slice(7, 9)}-${normalizedPhoneDigits.slice(9, 11)}`;
 
     if (!bitrixWebhookBase && !googleSheetsWebhookUrl) {
       res.statusCode = 503;
