@@ -1,63 +1,181 @@
 (() => {
   const config = window.SITE_CONFIG || {};
   const { socials = {}, stats = {}, manager = {}, prices = {}, showPrices = false } = config;
-  const setHref = (id, href) => { const el = document.getElementById(id); if (el && href) el.href = href; };
+
+  const setHref = (id, href) => {
+    const el = document.getElementById(id);
+    if (el && href) el.href = href;
+  };
+
   ['instagramLink','footerInstagram','instagramPlatform','instagramMetric'].forEach(id => setHref(id, socials.instagram));
   ['tiktokLink','footerTikTok','tiktokPlatform','tiktokMetric'].forEach(id => setHref(id, socials.tiktok));
 
   document.querySelectorAll('[data-stat="instagram"]').forEach(el => el.textContent = stats.instagram || '679K+');
   document.querySelectorAll('[data-stat="tiktok"]').forEach(el => el.textContent = stats.tiktok || '259K+');
-  document.querySelectorAll('[data-price]').forEach(el => { const key = el.dataset.price; el.textContent = showPrices ? (prices[key] || 'По запросу') : 'По запросу'; });
+  document.querySelectorAll('[data-price]').forEach(el => {
+    const key = el.dataset.price;
+    el.textContent = showPrices ? (prices[key] || 'По запросу') : 'По запросу';
+  });
 
   const currentPage = document.body.dataset.page;
-  document.querySelectorAll('[data-nav]').forEach(a => { if (a.dataset.nav === currentPage) a.classList.add('active'); });
+  document.querySelectorAll('[data-nav]').forEach(a => {
+    if (a.dataset.nav === currentPage) a.classList.add('active');
+  });
 
   const managerName = document.getElementById('managerName');
   if (managerName) managerName.textContent = manager.name || 'Менеджер';
+
   const phoneLink = document.getElementById('managerPhoneLink');
-  if (phoneLink) { phoneLink.textContent = `${manager.phoneDisplay || ''} ↗`; phoneLink.href = `https://wa.me/${manager.whatsapp || ''}`; }
+  if (phoneLink) {
+    phoneLink.textContent = `${manager.phoneDisplay || ''} ↗`;
+    phoneLink.href = `https://wa.me/${manager.whatsapp || ''}`;
+  }
+
   const emailLink = document.getElementById('managerEmailLink');
-  if (emailLink) { emailLink.textContent = `${manager.email || ''} ↗`; emailLink.href = `mailto:${manager.email || ''}`; }
+  if (emailLink) {
+    emailLink.textContent = `${manager.email || ''} ↗`;
+    emailLink.href = `mailto:${manager.email || ''}`;
+  }
 
   if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(entries => { entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); }); }, { threshold: 0.12 });
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.12 });
+
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  } else document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  } else {
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  }
 
   const menuBtn = document.querySelector('.menu-button');
   const header = document.querySelector('.site-header');
-  menuBtn?.addEventListener('click', () => { const open = header.classList.toggle('menu-open'); menuBtn.setAttribute('aria-expanded', String(open)); menuBtn.textContent = open ? '×' : '☰'; });
-  document.querySelectorAll('.desktop-nav a').forEach(a => a.addEventListener('click', () => { header.classList.remove('menu-open'); menuBtn?.setAttribute('aria-expanded','false'); if (menuBtn) menuBtn.textContent='☰'; }));
+
+  menuBtn?.addEventListener('click', () => {
+    const open = header.classList.toggle('menu-open');
+    menuBtn.setAttribute('aria-expanded', String(open));
+    menuBtn.textContent = open ? '×' : '☰';
+  });
+
+  document.querySelectorAll('.desktop-nav a').forEach(a => a.addEventListener('click', () => {
+    header.classList.remove('menu-open');
+    menuBtn?.setAttribute('aria-expanded','false');
+    if (menuBtn) menuBtn.textContent = '☰';
+  }));
 
   const form = document.getElementById('adBriefForm');
   const formStatus = document.getElementById('formStatus');
-  const submitBtn = form?.querySelector('button[type="submit"]');
+  const submitBtn = document.getElementById('dynamicSubmitBtn') || form?.querySelector('button[type="submit"]');
+  const submissionType = document.getElementById('submissionType');
+  const submissionHint = document.getElementById('submissionHint');
+  const commonFields = document.getElementById('commonFields');
+  const branches = [...document.querySelectorAll('.form-branch')];
 
-  const buildWhatsAppText = (data) => [
-    'Новая заявка на сотрудничество с Алибеком Ермагамбетовым',
-    '',
-    `Компания / бренд: ${data.company}`,
-    `Контактное лицо: ${data.name}`,
-    `Телефон: ${data.phone}`,
-    `Email: ${data.email || '—'}`,
-    `Ссылка на бренд: ${data.brandLink || '—'}`,
-    `Формат: ${data.format}`,
-    `Бюджет: ${data.budget}`,
-    `Желаемая дата: ${data.date || '—'}`,
-    '',
-    'Задача:',
-    String(data.message || '')
-  ].join('\n');
+  const branchLabels = {
+    cooperation: {
+      hint: 'Заполните бриф на рекламную интеграцию, амбассадорство, мероприятие или спецпроект.',
+      button: 'Отправить предложение'
+    },
+    narodnoe: {
+      hint: 'Предложите материалы, работы или услуги для актуального проекта «Народного строительства».',
+      button: 'Предложить участие в проекте'
+    }
+  };
+
+  const setBranchEnabled = (branch, enabled) => {
+    branch.hidden = !enabled;
+    branch.querySelectorAll('input, select, textarea').forEach(field => {
+      field.disabled = !enabled;
+    });
+  };
+
+  const updateFormBranch = () => {
+    if (!form || !submissionType) return;
+
+    const type = submissionType.value;
+    const config = branchLabels[type];
+
+    if (commonFields) commonFields.hidden = !type;
+
+    branches.forEach(branch => {
+      setBranchEnabled(branch, branch.dataset.branch === type);
+    });
+
+    if (submissionHint) {
+      submissionHint.textContent = config
+        ? config.hint
+        : 'Выберите направление — ниже появится подходящая форма.';
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = !type;
+      submitBtn.textContent = config?.button || 'Сначала выберите направление';
+    }
+
+    if (formStatus) {
+      formStatus.textContent = 'Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.';
+    }
+  };
+
+  if (submissionType) {
+    branches.forEach(branch => setBranchEnabled(branch, false));
+    submissionType.addEventListener('change', updateFormBranch);
+    updateFormBranch();
+  }
+
+  const buildWhatsAppText = (data) => {
+    const common = [
+      data.submissionType === 'narodnoe'
+        ? 'Новая заявка — Народное строительство'
+        : 'Новая заявка на сотрудничество с Алибеком Ермагамбетовым',
+      '',
+      `Компания / бренд: ${data.company || '—'}`,
+      `Контактное лицо: ${data.name || '—'}`,
+      `Телефон: ${data.phone || '—'}`,
+      `Email: ${data.email || '—'}`,
+      `Сайт / Instagram: ${data.brandLink || '—'}`
+    ];
+
+    if (data.submissionType === 'narodnoe') {
+      return [
+        ...common,
+        `Проект: ${data.project || '—'}`,
+        `Сфера: ${data.supplierCategory || '—'}`,
+        `Формат участия: ${data.contributionType || '—'}`,
+        `Город: ${data.city || '—'}`,
+        `Масштаб предложения: ${data.offerVolume || '—'}`,
+        '',
+        'Что готовы предоставить:',
+        String(data.message || '')
+      ].join('\n');
+    }
+
+    return [
+      ...common,
+      `Формат: ${data.format || '—'}`,
+      `Бюджет: ${data.budget || '—'}`,
+      `Желаемая дата: ${data.date || '—'}`,
+      '',
+      'Задача:',
+      String(data.message || '')
+    ].join('\n');
+  };
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (!form.reportValidity()) return;
+
     const fd = new FormData(form);
     const payload = Object.fromEntries(fd.entries());
+    const selectedConfig = branchLabels[payload.submissionType];
 
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Отправляем…';
     }
+
     if (formStatus) formStatus.textContent = 'Отправляем заявку…';
 
     try {
@@ -66,30 +184,37 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+
       const result = await response.json().catch(() => ({}));
 
       if (response.ok && result.ok) {
-        if (formStatus) formStatus.textContent = 'Заявка отправлена. Менеджер свяжется с вами.';
-        form.reset();
-        return;
-      }
+        if (formStatus) {
+          formStatus.textContent = payload.submissionType === 'narodnoe'
+            ? 'Предложение отправлено. Команда проекта свяжется с вами.'
+            : 'Заявка отправлена. Менеджер свяжется с вами.';
+        }
 
-      if (result.code === 'bitrix_not_configured') {
-        const text = buildWhatsAppText(payload);
-        window.open(`https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
-        if (formStatus) formStatus.textContent = 'CRM ещё не подключена — открыли готовое сообщение в WhatsApp.';
+        form.reset();
+        updateFormBranch();
         return;
       }
 
       throw new Error(result.error || 'Не удалось отправить заявку');
     } catch (error) {
       const text = buildWhatsAppText(payload);
-      window.open(`https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
-      if (formStatus) formStatus.textContent = 'Не удалось отправить в CRM — открыли резервную отправку через WhatsApp.';
+      window.open(
+        `https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`,
+        '_blank',
+        'noopener,noreferrer'
+      );
+
+      if (formStatus) {
+        formStatus.textContent = 'Не удалось сохранить заявку — открыли резервную отправку через WhatsApp.';
+      }
     } finally {
       if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Отправить предложение';
+        submitBtn.disabled = !submissionType?.value;
+        submitBtn.textContent = selectedConfig?.button || 'Сначала выберите направление';
       }
     }
   });
