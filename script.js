@@ -79,13 +79,17 @@
   const emailInput = document.getElementById('emailInput');
 
   const branchLabels = {
-    cooperation: {
-      hint: 'Заполните бриф на рекламную интеграцию, амбассадорство, мероприятие или спецпроект.',
-      button: 'Отправить предложение'
+    business: {
+      hint: 'Инвестиции, проект или участок, партнёрство, подряд или покупка недвижимости.',
+      button: 'Отправить бизнес-заявку'
     },
-    narodnoe: {
-      hint: 'Предложите материалы, работы или услуги для актуального проекта «Народного строительства».',
-      button: 'Предложить участие в проекте'
+    media: {
+      hint: 'Реклама, интеграция, амбассадорство, мероприятие или коллаборация.',
+      button: 'Отправить медиа-заявку'
+    },
+    social: {
+      hint: 'Социальный проект, материалы, работы, услуги или партнёрство в народном строительстве.',
+      button: 'Отправить предложение'
     }
   };
 
@@ -188,9 +192,17 @@
 
     const company = getValue('company');
 
-    if (type === 'narodnoe') {
+    if (type === 'business') {
       submissionSummaryGrid.innerHTML = [
-        summaryLabel('Направление', 'Народное строительство'),
+        summaryLabel('Направление', 'Бизнес и недвижимость'),
+        summaryLabel('Цель', getValue('businessIntent')),
+        summaryLabel('Город / регион', getValue('businessCity')),
+        summaryLabel('Бюджет / масштаб', getValue('businessBudget')),
+        summaryLabel('Контакт', company)
+      ].join('');
+    } else if (type === 'social') {
+      submissionSummaryGrid.innerHTML = [
+        summaryLabel('Направление', 'Народные проекты'),
         summaryLabel('Проект', getValue('project')),
         summaryLabel('Сфера', getValue('supplierCategory')),
         summaryLabel('Формат участия', getValue('contributionType')),
@@ -198,7 +210,7 @@
       ].join('');
     } else {
       submissionSummaryGrid.innerHTML = [
-        summaryLabel('Направление', 'Сотрудничество / реклама'),
+        summaryLabel('Направление', 'Медиа и сотрудничество'),
         summaryLabel('Формат', getValue('format')),
         summaryLabel('Бюджет', getValue('budget')),
         summaryLabel('Желаемая дата', getValue('date')),
@@ -255,7 +267,14 @@
       });
     });
 
-    updateFormBranch();
+    const requestedType = new URLSearchParams(window.location.search).get('type');
+    if (['business','media','social'].includes(requestedType)) {
+      submissionType.value = requestedType;
+      updateFormBranch();
+      setTimeout(() => document.getElementById('brief')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    } else {
+      updateFormBranch();
+    }
   }
 
   phoneInput?.addEventListener('input', () => {
@@ -291,19 +310,35 @@
   });
 
   const buildWhatsAppText = (data) => {
+    const titles = {
+      business: 'Новая бизнес-заявка с сайта Алибек Ермагамбетов',
+      media: 'Новая медиа-заявка с сайта Алибек Ермагамбетов',
+      social: 'Новая заявка — Народные проекты'
+    };
+
     const common = [
-      data.submissionType === 'narodnoe'
-        ? 'Новая заявка — Народное строительство'
-        : 'Новая заявка на сотрудничество с Алибеком Ермагамбетовым',
+      titles[data.submissionType] || 'Новая заявка с сайта',
       '',
-      `Компания / бренд: ${data.company || '—'}`,
+      `Компания / контакт: ${data.company || '—'}`,
       `Контактное лицо: ${data.name || '—'}`,
       `Телефон: ${data.phone || '—'}`,
       `Email: ${data.email || '—'}`,
       `Сайт / Instagram: ${data.brandLink || '—'}`
     ];
 
-    if (data.submissionType === 'narodnoe') {
+    if (data.submissionType === 'business') {
+      return [
+        ...common,
+        `Цель: ${data.businessIntent || '—'}`,
+        `Город / регион: ${data.businessCity || '—'}`,
+        `Бюджет / масштаб: ${data.businessBudget || '—'}`,
+        '',
+        'Описание:',
+        String(data.message || '')
+      ].join('\n');
+    }
+
+    if (data.submissionType === 'social') {
       return [
         ...common,
         `Проект: ${data.project || '—'}`,
@@ -365,7 +400,7 @@
 
       if (response.ok && result.ok) {
         if (formStatus) {
-          formStatus.textContent = payload.submissionType === 'narodnoe'
+          formStatus.textContent = payload.submissionType === 'social'
             ? 'Предложение отправлено. Команда проекта свяжется с вами.'
             : 'Заявка отправлена. Менеджер свяжется с вами.';
         }
