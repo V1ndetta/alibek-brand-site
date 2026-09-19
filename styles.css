@@ -136,3 +136,18 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}.noise{poi
     padding:0 12px;
   }
 }
+
+
+/* MEDIA — INTERACTIVE SOCIAL METRICS */
+.media-metrics .social-metric{position:relative;overflow:hidden;transition:background .25s ease,transform .25s ease,border-color .25s ease}
+.media-metrics .social-metric:before{content:"";position:absolute;width:170px;height:170px;right:-65px;top:-90px;border-radius:50%;background:#4f8cff;filter:blur(55px);opacity:.12;transition:opacity .25s ease,transform .25s ease}
+.media-metrics .social-metric:hover{background:linear-gradient(145deg,rgba(79,140,255,.10),rgba(255,255,255,.015));transform:translateY(-3px)}
+.media-metrics .social-metric:hover:before{opacity:.24;transform:scale(1.15)}
+.media-metrics .social-metric-kicker{display:block;position:relative;z-index:1;min-height:18px;color:#9fc6ff;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.media-metrics .social-metric strong{position:relative;z-index:1}
+.media-metrics .social-metric p{position:relative;z-index:1;display:flex;flex-direction:column;gap:8px}
+.media-metrics .social-metric p b{font-size:11px;color:#cfe1ff;text-transform:uppercase;letter-spacing:.07em}
+.media-metrics .social-metric:hover p b{color:#fff}
+@media(max-width:640px){
+  .media-metrics .social-metric-kicker{font-size:9px;line-height:1.45}
+}
