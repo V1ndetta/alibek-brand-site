@@ -176,6 +176,17 @@
       </label>
     </div>
 
+    <div id="submissionSummary" class="submission-summary" hidden>
+      <div class="submission-summary-head">
+        <div>
+          <span class="form-step-kicker">Проверьте перед отправкой</span>
+          <h3>Ваше предложение</h3>
+        </div>
+        <button id="changeDirectionBtn" type="button" class="summary-change-btn">Изменить направление</button>
+      </div>
+      <div id="submissionSummaryGrid" class="submission-summary-grid"></div>
+    </div>
+
     <button id="dynamicSubmitBtn" class="btn btn-primary submit-btn" type="submit" disabled>Сначала выберите направление</button>
     <p id="formStatus" class="form-note">Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.</p>
   </form>
