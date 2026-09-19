@@ -893,3 +893,57 @@ body[data-page="cooperation"] .brief-section{
     font-size:13px;
   }
 }
+
+
+/* === SUBTLE NEON DIRECTION CARDS — STAGING DRAFT === */
+body[data-page="cooperation"] .direction-grid-three{
+  gap:16px;
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card{
+  border-color:rgba(74,145,255,.42);
+  background:
+    radial-gradient(circle at 12% 0%,rgba(55,127,255,.10),transparent 34%),
+    linear-gradient(145deg,#0b1725,#08121e);
+  box-shadow:
+    0 0 0 1px rgba(65,137,255,.08),
+    0 0 16px rgba(40,112,235,.10),
+    inset 0 0 18px rgba(58,126,255,.025);
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card:before{
+  opacity:.10;
+  background:#3f82ff;
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card:hover{
+  border-color:rgba(96,164,255,.62);
+  background:
+    radial-gradient(circle at 12% 0%,rgba(55,127,255,.14),transparent 34%),
+    linear-gradient(145deg,#0d1a2b,#091522);
+  box-shadow:
+    0 0 0 1px rgba(76,150,255,.12),
+    0 0 22px rgba(48,119,240,.15),
+    inset 0 0 22px rgba(58,126,255,.035);
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card.active{
+  border-color:rgba(110,176,255,.78);
+  background:
+    radial-gradient(circle at 16% 0%,rgba(70,144,255,.17),transparent 36%),
+    linear-gradient(145deg,#0e1d30,#091522);
+  box-shadow:
+    0 0 0 1px rgba(91,163,255,.18),
+    0 0 26px rgba(48,120,242,.20),
+    inset 0 0 24px rgba(67,139,255,.045);
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card-icon{
+  border-color:rgba(92,157,255,.32);
+  box-shadow:0 0 12px rgba(57,130,248,.08);
+}
+
+body[data-page="cooperation"] .direction-grid-three .direction-card.active .direction-card-icon{
+  border-color:rgba(112,176,255,.55);
+  box-shadow:0 0 16px rgba(57,130,248,.13);
+}
