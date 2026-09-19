@@ -13,7 +13,15 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const submissionType = body.submissionType === 'narodnoe' ? 'narodnoe' : 'cooperation';
     const required = ['company', 'name', 'phone', 'message'];
+
+    if (submissionType === 'narodnoe') {
+      required.push('project', 'supplierCategory', 'contributionType');
+    } else {
+      required.push('format');
+    }
+
     const missing = required.filter((key) => !String(body[key] || '').trim());
 
     if (missing.length) {
@@ -27,16 +35,41 @@ module.exports = async function handler(req, res) {
     }
 
     const submittedAt = new Date().toISOString();
-    const comments = [
-      `Бренд / компания: ${body.company}`,
-      `Ссылка на бренд: ${body.brandLink || '—'}`,
-      `Формат сотрудничества: ${body.format || '—'}`,
-      `Бюджет: ${body.budget || '—'}`,
-      `Желаемая дата: ${body.date || '—'}`,
-      '',
-      'Задача:',
-      body.message || '—'
-    ].join('\n');
+    const isProjectLead = submissionType === 'narodnoe';
+
+    const title = isProjectLead
+      ? `Народное строительство — ${body.company}`
+      : `Сотрудничество — ${body.company}`;
+
+    const source = isProjectLead
+      ? 'Сайт Алибек Ермагамбетов — Народное строительство'
+      : 'Сайт Алибек Ермагамбетов — Сотрудничество';
+
+    const comments = isProjectLead
+      ? [
+          'Тип обращения: Народное строительство',
+          `Проект: ${body.project || '—'}`,
+          `Бренд / компания: ${body.company}`,
+          `Сайт / Instagram: ${body.brandLink || '—'}`,
+          `Сфера: ${body.supplierCategory || '—'}`,
+          `Формат участия: ${body.contributionType || '—'}`,
+          `Город компании: ${body.city || '—'}`,
+          `Масштаб предложения: ${body.offerVolume || '—'}`,
+          '',
+          'Что готовы предоставить:',
+          body.message || '—'
+        ].join('\n')
+      : [
+          'Тип обращения: Сотрудничество / реклама',
+          `Бренд / компания: ${body.company}`,
+          `Ссылка на бренд: ${body.brandLink || '—'}`,
+          `Формат сотрудничества: ${body.format || '—'}`,
+          `Бюджет: ${body.budget || '—'}`,
+          `Желаемая дата: ${body.date || '—'}`,
+          '',
+          'Задача:',
+          body.message || '—'
+        ].join('\n');
 
     const delivery = {
       bitrix: { configured: Boolean(bitrixWebhookBase), ok: false, id: null },
@@ -46,9 +79,9 @@ module.exports = async function handler(req, res) {
     if (bitrixWebhookBase) {
       try {
         const fields = {
-          TITLE: `Сотрудничество — ${body.company}`,
+          TITLE: title,
           NAME: body.name,
-          SOURCE_DESCRIPTION: 'Сайт Алибек Ермагамбетов',
+          SOURCE_DESCRIPTION: source,
           COMMENTS: comments,
           PHONE: [{ VALUE: body.phone, VALUE_TYPE: 'WORK' }]
         };
@@ -63,7 +96,9 @@ module.exports = async function handler(req, res) {
         });
 
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || result.error) throw new Error(result.error_description || result.error || 'Bitrix24 rejected the request');
+        if (!response.ok || result.error) {
+          throw new Error(result.error_description || result.error || 'Bitrix24 rejected the request');
+        }
 
         delivery.bitrix.ok = true;
         delivery.bitrix.id = result.result || null;
@@ -75,6 +110,23 @@ module.exports = async function handler(req, res) {
 
     if (googleSheetsWebhookUrl) {
       try {
+        const sheetFormat = isProjectLead
+          ? `Народное строительство · ${body.supplierCategory || '—'}`
+          : (body.format || '');
+
+        const sheetMessage = isProjectLead
+          ? [
+              `Проект: ${body.project || '—'}`,
+              `Сфера: ${body.supplierCategory || '—'}`,
+              `Формат участия: ${body.contributionType || '—'}`,
+              `Город: ${body.city || '—'}`,
+              `Масштаб: ${body.offerVolume || '—'}`,
+              '',
+              'Предложение:',
+              body.message || '—'
+            ].join('\n')
+          : (body.message || '');
+
         const response = await fetch(googleSheetsWebhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -86,18 +138,20 @@ module.exports = async function handler(req, res) {
             phone: body.phone,
             email: body.email || '',
             brandLink: body.brandLink || '',
-            format: body.format || '',
-            budget: body.budget || '',
-            date: body.date || '',
-            message: body.message || '',
-            source: 'Сайт Алибек Ермагамбетов',
+            format: sheetFormat,
+            budget: isProjectLead ? '' : (body.budget || ''),
+            date: isProjectLead ? '' : (body.date || ''),
+            message: sheetMessage,
+            source,
             bitrixId: delivery.bitrix.id || '',
             bitrixStatus: delivery.bitrix.ok ? 'Создан' : (delivery.bitrix.configured ? 'Ошибка' : 'Не подключён')
           })
         });
 
         const result = await response.json().catch(() => ({}));
-        if (!response.ok || result.ok === false) throw new Error(result.error || 'Google Sheets rejected the request');
+        if (!response.ok || result.ok === false) {
+          throw new Error(result.error || 'Google Sheets rejected the request');
+        }
 
         delivery.googleSheets.ok = true;
       } catch (error) {
@@ -107,6 +161,7 @@ module.exports = async function handler(req, res) {
     }
 
     const delivered = delivery.bitrix.ok || delivery.googleSheets.ok;
+
     if (!delivered) {
       res.statusCode = 502;
       return res.end(JSON.stringify({ ok: false, code: 'lead_delivery_failed', delivery }));
@@ -115,6 +170,7 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({
       ok: true,
       id: delivery.bitrix.id,
+      type: submissionType,
       partial: !(delivery.bitrix.ok && delivery.googleSheets.ok),
       delivery
     }));
