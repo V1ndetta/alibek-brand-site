@@ -68,6 +68,7 @@
   const formStatus = document.getElementById('formStatus');
   const submitBtn = document.getElementById('dynamicSubmitBtn') || form?.querySelector('button[type="submit"]');
   const submissionType = document.getElementById('submissionType');
+  const directionCards = [...document.querySelectorAll('[data-submission-type]')];
   const submissionHint = document.getElementById('submissionHint');
   const commonFields = document.getElementById('commonFields');
   const branches = [...document.querySelectorAll('.form-branch')];
@@ -96,6 +97,12 @@
     const type = submissionType.value;
     const config = branchLabels[type];
 
+    directionCards.forEach(card => {
+      const active = card.dataset.submissionType === type;
+      card.classList.toggle('active', active);
+      card.setAttribute('aria-checked', String(active));
+    });
+
     if (commonFields) commonFields.hidden = !type;
 
     branches.forEach(branch => {
@@ -120,7 +127,18 @@
 
   if (submissionType) {
     branches.forEach(branch => setBranchEnabled(branch, false));
-    submissionType.addEventListener('change', updateFormBranch);
+
+    directionCards.forEach(card => {
+      card.addEventListener('click', () => {
+        submissionType.value = card.dataset.submissionType || '';
+        updateFormBranch();
+
+        if (commonFields && !commonFields.hidden) {
+          commonFields.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    });
+
     updateFormBranch();
   }
 
@@ -164,6 +182,12 @@
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    if (!submissionType?.value) {
+      if (formStatus) formStatus.textContent = 'Сначала выберите направление предложения.';
+      document.querySelector('.direction-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     if (!form.reportValidity()) return;
 
