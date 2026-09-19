@@ -676,3 +676,54 @@ body[data-page="cooperation"] .brief-section{
   .concept-choice-grid,.concept-choice-grid-3{grid-template-columns:1fr}
   .concept-social-actions{grid-template-columns:1fr}
 }
+
+/* === MULTIPAGE DIRECTION DRAFT === */
+.direction-hub{padding-top:105px}
+.direction-hub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:44px}
+.direction-hub-card{position:relative;min-height:480px;border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#09131f;display:flex;align-items:flex-end;transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease}
+.direction-hub-card:hover{transform:translateY(-5px);border-color:rgba(130,180,255,.42);box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.direction-hub-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.78) contrast(1.04)}
+.direction-hub-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,8,15,.06) 10%,rgba(3,8,15,.32) 44%,rgba(3,8,15,.96) 100%)}
+.direction-hub-card:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(61,124,230,.1),transparent 42%);pointer-events:none}
+.direction-hub-kicker{position:absolute;z-index:2;top:24px;left:24px;padding:8px 10px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(4,10,18,.52);backdrop-filter:blur(12px);font-size:9px;font-weight:900;letter-spacing:.12em;color:#d5e7ff}
+.direction-hub-card>div{position:relative;z-index:2;padding:30px}
+.direction-hub-card h3{margin:0;font-family:Oswald,sans-serif;font-size:42px;line-height:.98;text-transform:uppercase}
+.direction-hub-card p{max-width:300px;margin:14px 0 24px;color:#aab8c9;font-size:13px;line-height:1.6}
+.direction-hub-card strong{color:#dceaff;font-size:12px}
+
+.direction-detail-actions{padding-top:96px}
+.detail-action-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:42px}
+.detail-action-grid-3{grid-template-columns:repeat(3,1fr)}
+.detail-action-grid>a{min-height:315px;padding:26px;border:1px solid var(--line);border-radius:22px;background:radial-gradient(circle at 90% 0%,rgba(79,140,255,.09),transparent 34%),rgba(255,255,255,.022);display:flex;flex-direction:column;transition:transform .22s ease,border-color .22s ease,background .22s ease}
+.detail-action-grid>a:hover{transform:translateY(-3px);border-color:rgba(126,175,255,.4);background:radial-gradient(circle at 90% 0%,rgba(79,140,255,.16),transparent 36%),rgba(255,255,255,.035)}
+.detail-action-grid small{color:#76a6df;font-size:9px;font-weight:900;letter-spacing:.1em}
+.detail-action-grid h3{margin:48px 0 12px;font-size:25px;line-height:1.22}
+.detail-action-grid p{margin:0;color:#8f9fb2;font-size:13px;line-height:1.7}
+.detail-action-grid span{margin-top:auto;padding-top:26px;color:#c4dcfb;font-size:12px;font-weight:800}
+
+.social-project-feature{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+.social-case-card{margin-top:36px;padding:34px;border:1px solid var(--line);border-radius:26px;background:radial-gradient(circle at 86% 10%,rgba(79,140,255,.12),transparent 32%),linear-gradient(145deg,#0d1c2d,#08121d);display:flex;align-items:end;justify-content:space-between;gap:24px}
+.social-case-card p{margin:0 0 10px;color:#76a6df;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.social-case-card h3{margin:0;font-family:Oswald,sans-serif;font-size:46px}
+.social-case-card span{display:block;margin-top:8px;color:#8fa0b4;font-size:13px}
+
+.direction-grid-three{grid-template-columns:repeat(3,1fr)}
+.direction-grid-three .direction-card{min-height:235px;grid-template-columns:48px 1fr;padding:20px}
+.direction-grid-three .direction-card-icon{width:48px;height:48px}
+.direction-grid-three .direction-card-copy strong{font-size:16px}
+.direction-grid-three .direction-card-copy small{min-height:72px;font-size:11px}
+
+@media(max-width:1080px){
+  .direction-hub-grid{grid-template-columns:1fr}
+  .direction-hub-card{min-height:390px}
+  .detail-action-grid,.detail-action-grid-3{grid-template-columns:1fr 1fr}
+  .direction-grid-three{grid-template-columns:1fr}
+  .direction-grid-three .direction-card-copy small{min-height:auto}
+}
+@media(max-width:760px){
+  .direction-hub-card{min-height:340px}
+  .direction-hub-card h3{font-size:36px}
+  .detail-action-grid,.detail-action-grid-3{grid-template-columns:1fr}
+  .social-project-feature{grid-template-columns:1fr;gap:30px}
+  .social-case-card{align-items:flex-start;flex-direction:column}
+}
