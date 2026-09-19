@@ -521,3 +521,59 @@ body[data-page="cooperation"] .brief-section{
     grid-template-columns:1fr;
   }
 }
+
+
+/* FORM INPUT QUALITY — PHONE PREFIX + VALIDATION HELP */
+.phone-input-wrap{
+  display:flex;
+  align-items:center;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:12px;
+  background:#07111d;
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+.phone-input-wrap:focus-within{
+  border-color:#6597ef;
+  box-shadow:0 0 0 3px rgba(78,124,255,.12);
+}
+.phone-input-wrap>b{
+  flex:0 0 auto;
+  padding:0 0 0 15px;
+  color:#dbe9fa;
+  font-size:15px;
+}
+.phone-input-wrap input{
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none!important;
+}
+.phone-input-wrap input:focus{
+  border:0;
+  box-shadow:none!important;
+}
+.field-help{
+  display:block;
+  margin-top:7px;
+  color:#62778e;
+  font-size:10px;
+  line-height:1.45;
+}
+.brief-form input:invalid:not(:placeholder-shown),
+.brief-form textarea:invalid:not(:placeholder-shown),
+.brief-form select:invalid{
+  border-color:rgba(255,126,126,.42);
+}
+.phone-input-wrap:has(input:invalid:not(:placeholder-shown)){
+  border-color:rgba(255,126,126,.42);
+}
+.brief-form input:valid:not(:placeholder-shown),
+.brief-form textarea:valid:not(:placeholder-shown){
+  border-color:rgba(115,183,150,.22);
+}
+#dynamicSubmitBtn:disabled{
+  opacity:.38;
+  cursor:not-allowed;
+  box-shadow:none;
+}
