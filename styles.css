@@ -577,3 +577,23 @@ body[data-page="cooperation"] .brief-section{
   cursor:not-allowed;
   box-shadow:none;
 }
+
+
+/* PROJECTS COMMUNITY — NO RIGHT-SIDE INDEX */
+.premium-project-list .project-row{
+  grid-template-columns:.28fr 1fr;
+}
+@media(max-width:980px){
+  .premium-project-list .project-row{
+    grid-template-columns:.32fr 1fr;
+  }
+}
+@media(max-width:640px){
+  .premium-project-list .project-row{
+    grid-template-columns:1fr;
+  }
+  .premium-project-list .project-row>span,
+  .premium-project-list .project-row>div{
+    grid-column:1;
+  }
+}
