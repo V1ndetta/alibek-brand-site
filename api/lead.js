@@ -6,13 +6,10 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ ok: false, error: 'Method not allowed' }));
   }
 
-  const webhookBase = process.env.BITRIX_WEBHOOK_BASE_URL;
-  const method = process.env.BITRIX_METHOD || 'crm.lead.add.json';
-
-  if (!webhookBase) {
-    res.statusCode = 503;
-    return res.end(JSON.stringify({ ok: false, code: 'bitrix_not_configured' }));
-  }
+  const bitrixWebhookBase = process.env.BITRIX_WEBHOOK_BASE_URL;
+  const bitrixMethod = process.env.BITRIX_METHOD || 'crm.lead.add.json';
+  const googleSheetsWebhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET || '';
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
@@ -24,6 +21,12 @@ module.exports = async function handler(req, res) {
       return res.end(JSON.stringify({ ok: false, error: `Missing fields: ${missing.join(', ')}` }));
     }
 
+    if (!bitrixWebhookBase && !googleSheetsWebhookUrl) {
+      res.statusCode = 503;
+      return res.end(JSON.stringify({ ok: false, code: 'lead_sinks_not_configured' }));
+    }
+
+    const submittedAt = new Date().toISOString();
     const comments = [
       `Бренд / компания: ${body.company}`,
       `Ссылка на бренд: ${body.brandLink || '—'}`,
@@ -35,32 +38,86 @@ module.exports = async function handler(req, res) {
       body.message || '—'
     ].join('\n');
 
-    const fields = {
-      TITLE: `Сотрудничество — ${body.company}`,
-      NAME: body.name,
-      SOURCE_DESCRIPTION: 'Сайт Алибек Ермагамбетов',
-      COMMENTS: comments,
-      PHONE: [{ VALUE: body.phone, VALUE_TYPE: 'WORK' }]
+    const delivery = {
+      bitrix: { configured: Boolean(bitrixWebhookBase), ok: false, id: null },
+      googleSheets: { configured: Boolean(googleSheetsWebhookUrl), ok: false }
     };
 
-    if (body.email) fields.EMAIL = [{ VALUE: body.email, VALUE_TYPE: 'WORK' }];
+    if (bitrixWebhookBase) {
+      try {
+        const fields = {
+          TITLE: `Сотрудничество — ${body.company}`,
+          NAME: body.name,
+          SOURCE_DESCRIPTION: 'Сайт Алибек Ермагамбетов',
+          COMMENTS: comments,
+          PHONE: [{ VALUE: body.phone, VALUE_TYPE: 'WORK' }]
+        };
 
-    const base = webhookBase.endsWith('/') ? webhookBase : `${webhookBase}/`;
-    const response = await fetch(`${base}${method}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields, params: { REGISTER_SONET_EVENT: 'Y' } })
-    });
+        if (body.email) fields.EMAIL = [{ VALUE: body.email, VALUE_TYPE: 'WORK' }];
 
-    const result = await response.json().catch(() => ({}));
+        const base = bitrixWebhookBase.endsWith('/') ? bitrixWebhookBase : `${bitrixWebhookBase}/`;
+        const response = await fetch(`${base}${bitrixMethod}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fields, params: { REGISTER_SONET_EVENT: 'Y' } })
+        });
 
-    if (!response.ok || result.error) {
-      console.error('Bitrix24 error:', result);
-      res.statusCode = 502;
-      return res.end(JSON.stringify({ ok: false, error: 'Bitrix24 rejected the request' }));
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.error) throw new Error(result.error_description || result.error || 'Bitrix24 rejected the request');
+
+        delivery.bitrix.ok = true;
+        delivery.bitrix.id = result.result || null;
+      } catch (error) {
+        delivery.bitrix.error = String(error?.message || error);
+        console.error('Bitrix24 delivery error:', error);
+      }
     }
 
-    return res.end(JSON.stringify({ ok: true, id: result.result || null }));
+    if (googleSheetsWebhookUrl) {
+      try {
+        const response = await fetch(googleSheetsWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            secret: googleSheetsSecret,
+            submittedAt,
+            company: body.company,
+            name: body.name,
+            phone: body.phone,
+            email: body.email || '',
+            brandLink: body.brandLink || '',
+            format: body.format || '',
+            budget: body.budget || '',
+            date: body.date || '',
+            message: body.message || '',
+            source: 'Сайт Алибек Ермагамбетов',
+            bitrixId: delivery.bitrix.id || '',
+            bitrixStatus: delivery.bitrix.ok ? 'Создан' : (delivery.bitrix.configured ? 'Ошибка' : 'Не подключён')
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result.ok === false) throw new Error(result.error || 'Google Sheets rejected the request');
+
+        delivery.googleSheets.ok = true;
+      } catch (error) {
+        delivery.googleSheets.error = String(error?.message || error);
+        console.error('Google Sheets delivery error:', error);
+      }
+    }
+
+    const delivered = delivery.bitrix.ok || delivery.googleSheets.ok;
+    if (!delivered) {
+      res.statusCode = 502;
+      return res.end(JSON.stringify({ ok: false, code: 'lead_delivery_failed', delivery }));
+    }
+
+    return res.end(JSON.stringify({
+      ok: true,
+      id: delivery.bitrix.id,
+      partial: !(delivery.bitrix.ok && delivery.googleSheets.ok),
+      delivery
+    }));
   } catch (error) {
     console.error('Lead endpoint error:', error);
     res.statusCode = 500;
