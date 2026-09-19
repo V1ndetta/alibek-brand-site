@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
 
   const bitrixWebhookBase = process.env.BITRIX_WEBHOOK_BASE_URL;
   const bitrixMethod = process.env.BITRIX_METHOD || 'crm.lead.add.json';
-  const googleSheetsWebhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+  const googleSheetsWebhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbzs174VMsQVGnBjqjjxTmyYUI7gYj6PHeXGA9tOnDQHeridKNEuB4XwD2LzwuSSWN2l/exec';
   const googleSheetsSecret = process.env.GOOGLE_SHEETS_SECRET || '';
 
   try {
