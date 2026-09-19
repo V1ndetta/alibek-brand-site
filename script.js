@@ -2,8 +2,8 @@
   const config = window.SITE_CONFIG || {};
   const { socials = {}, stats = {}, manager = {}, prices = {}, showPrices = false } = config;
   const setHref = (id, href) => { const el = document.getElementById(id); if (el && href) el.href = href; };
-  ['instagramLink','footerInstagram','instagramPlatform'].forEach(id => setHref(id, socials.instagram));
-  ['tiktokLink','footerTikTok','tiktokPlatform'].forEach(id => setHref(id, socials.tiktok));
+  ['instagramLink','footerInstagram','instagramPlatform','instagramMetric'].forEach(id => setHref(id, socials.instagram));
+  ['tiktokLink','footerTikTok','tiktokPlatform','tiktokMetric'].forEach(id => setHref(id, socials.tiktok));
 
   document.querySelectorAll('[data-stat="instagram"]').forEach(el => el.textContent = stats.instagram || '679K+');
   document.querySelectorAll('[data-stat="tiktok"]').forEach(el => el.textContent = stats.tiktok || '259K+');
