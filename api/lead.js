@@ -1,5 +1,28 @@
 module.exports = async function handler(req, res) {
+  const origin = req.headers.origin || '';
+  const allowedOrigin =
+    origin === 'https://aliermagambetov.kz' ||
+    origin === 'https://www.aliermagambetov.kz' ||
+    origin.endsWith('.vercel.app');
+
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (allowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = allowedOrigin ? 204 : 403;
+    return res.end();
+  }
+
+  if (origin && !allowedOrigin) {
+    res.statusCode = 403;
+    return res.end(JSON.stringify({ ok: false, error: 'Origin not allowed' }));
+  }
 
   if (req.method !== 'POST') {
     res.statusCode = 405;
