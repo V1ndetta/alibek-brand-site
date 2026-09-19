@@ -1,6 +1,7 @@
 (() => {
   const config = window.SITE_CONFIG || {};
   const { socials = {}, stats = {}, manager = {}, prices = {}, showPrices = false } = config;
+  const leadApiUrl = config.leadApiUrl || '/api/lead';
 
   const setHref = (id, href) => {
     const el = document.getElementById(id);
@@ -355,7 +356,7 @@
     if (formStatus) formStatus.textContent = 'Отправляем заявку…';
 
     try {
-      const response = await fetch('/api/lead', {
+      const response = await fetch(leadApiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -385,15 +386,10 @@
 
       throw new Error(result.error || 'Не удалось отправить заявку');
     } catch (error) {
-      const text = buildWhatsAppText(payload);
-      window.open(
-        `https://wa.me/${manager.whatsapp || ''}?text=${encodeURIComponent(text)}`,
-        '_blank',
-        'noopener,noreferrer'
-      );
+      console.error('Lead submission failed:', error);
 
       if (formStatus) {
-        formStatus.textContent = 'Не удалось сохранить заявку — открыли резервную отправку через WhatsApp.';
+        formStatus.textContent = 'Не удалось отправить заявку. Попробуйте ещё раз или свяжитесь с менеджером вручную по WhatsApp.';
       }
     } finally {
       refreshSubmitState();
