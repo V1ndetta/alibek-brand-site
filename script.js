@@ -72,6 +72,9 @@
   const submissionHint = document.getElementById('submissionHint');
   const commonFields = document.getElementById('commonFields');
   const branches = [...document.querySelectorAll('.form-branch')];
+  const submissionSummary = document.getElementById('submissionSummary');
+  const submissionSummaryGrid = document.getElementById('submissionSummaryGrid');
+  const changeDirectionBtn = document.getElementById('changeDirectionBtn');
 
   const branchLabels = {
     cooperation: {
@@ -89,6 +92,52 @@
     branch.querySelectorAll('input, select, textarea').forEach(field => {
       field.disabled = !enabled;
     });
+  };
+
+  const summaryLabel = (label, value) => `
+    <div class="submission-summary-item">
+      <span>${label}</span>
+      <strong>${value || '—'}</strong>
+    </div>
+  `;
+
+  const updateSubmissionSummary = () => {
+    if (!form || !submissionType || !submissionSummary || !submissionSummaryGrid) return;
+
+    const type = submissionType.value;
+
+    if (!type) {
+      submissionSummary.hidden = true;
+      submissionSummaryGrid.innerHTML = '';
+      return;
+    }
+
+    const getValue = (name) => {
+      const field = form.elements[name];
+      return field && !field.disabled ? String(field.value || '').trim() : '';
+    };
+
+    const company = getValue('company');
+
+    if (type === 'narodnoe') {
+      submissionSummaryGrid.innerHTML = [
+        summaryLabel('Направление', 'Народное строительство'),
+        summaryLabel('Проект', getValue('project')),
+        summaryLabel('Сфера', getValue('supplierCategory')),
+        summaryLabel('Формат участия', getValue('contributionType')),
+        summaryLabel('Компания', company)
+      ].join('');
+    } else {
+      submissionSummaryGrid.innerHTML = [
+        summaryLabel('Направление', 'Сотрудничество / реклама'),
+        summaryLabel('Формат', getValue('format')),
+        summaryLabel('Бюджет', getValue('budget')),
+        summaryLabel('Желаемая дата', getValue('date')),
+        summaryLabel('Компания', company)
+      ].join('');
+    }
+
+    submissionSummary.hidden = false;
   };
 
   const updateFormBranch = () => {
@@ -123,6 +172,8 @@
     if (formStatus) {
       formStatus.textContent = 'Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.';
     }
+
+    updateSubmissionSummary();
   };
 
   if (submissionType) {
@@ -141,6 +192,14 @@
 
     updateFormBranch();
   }
+
+  form?.addEventListener('input', updateSubmissionSummary);
+  form?.addEventListener('change', updateSubmissionSummary);
+
+  changeDirectionBtn?.addEventListener('click', () => {
+    document.querySelector('.direction-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    directionCards[0]?.focus({ preventScroll: true });
+  });
 
   const buildWhatsAppText = (data) => {
     const common = [
@@ -219,7 +278,9 @@
         }
 
         form.reset();
+        if (submissionType) submissionType.value = '';
         updateFormBranch();
+        updateSubmissionSummary();
         return;
       }
 
