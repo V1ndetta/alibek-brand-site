@@ -3,6 +3,7 @@
   Здесь можно менять основные контакты, ссылки, статистику и цены без правок верстки.
 */
 window.SITE_CONFIG = {
+  leadApiUrl: "https://alibek-brand-site.vercel.app/api/lead",
   socials: {
     instagram: "https://www.instagram.com/ali_ermagambetov/",
     tiktok: "https://www.tiktok.com/@ali_ermagambetov"
