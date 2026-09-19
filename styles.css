@@ -106,3 +106,33 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}.noise{poi
   .supplier-grid{grid-template-columns:1fr}
   .supplier-details{grid-template-columns:1fr}
 }
+
+
+/* BUSINESS COMMUNITIES — STRONGER LEFT LABELS */
+.business-communities .project-row>span{
+  justify-self:start;
+  display:inline-flex;
+  align-items:center;
+  min-height:38px;
+  padding:0 14px;
+  border:1px solid rgba(111,166,255,.34);
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(79,140,255,.18),rgba(79,140,255,.06));
+  color:#b9d6ff;
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:.11em;
+  box-shadow:0 10px 28px rgba(48,104,200,.10);
+}
+.business-communities .project-row:hover>span{
+  border-color:rgba(143,190,255,.72);
+  background:linear-gradient(135deg,rgba(79,140,255,.28),rgba(79,140,255,.09));
+  color:#e8f2ff;
+}
+@media(max-width:640px){
+  .business-communities .project-row>span{
+    font-size:13px;
+    min-height:36px;
+    padding:0 12px;
+  }
+}
