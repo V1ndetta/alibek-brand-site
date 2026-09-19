@@ -75,6 +75,8 @@
   const submissionSummary = document.getElementById('submissionSummary');
   const submissionSummaryGrid = document.getElementById('submissionSummaryGrid');
   const changeDirectionBtn = document.getElementById('changeDirectionBtn');
+  const phoneInput = document.getElementById('phoneInput');
+  const emailInput = document.getElementById('emailInput');
 
   const branchLabels = {
     cooperation: {
@@ -92,6 +94,73 @@
     branch.querySelectorAll('input, select, textarea').forEach(field => {
       field.disabled = !enabled;
     });
+  };
+
+  const formatPhoneLocal = (value) => {
+    let digits = String(value || '').replace(/\D/g, '');
+
+    if (digits.length === 11 && (digits.startsWith('7') || digits.startsWith('8'))) {
+      digits = digits.slice(1);
+    }
+
+    digits = digits.slice(0, 10);
+
+    const a = digits.slice(0, 3);
+    const b = digits.slice(3, 6);
+    const c = digits.slice(6, 8);
+    const d = digits.slice(8, 10);
+
+    let result = '';
+    if (a) result += `(${a}`;
+    if (a.length === 3) result += ') ';
+    if (b) result += b;
+    if (b.length === 3 && c) result += '-';
+    if (c) result += c;
+    if (c.length === 2 && d) result += '-';
+    if (d) result += d;
+
+    return result;
+  };
+
+  const validatePhone = () => {
+    if (!phoneInput) return true;
+    const digits = phoneInput.value.replace(/\D/g, '');
+
+    if (!digits.length) {
+      phoneInput.setCustomValidity('');
+      return false;
+    }
+
+    const valid = digits.length === 10;
+    phoneInput.setCustomValidity(valid ? '' : 'Введите 10 цифр номера после +7');
+    return valid;
+  };
+
+  const validateEmail = () => {
+    if (!emailInput) return true;
+    const value = emailInput.value.trim();
+
+    if (!value) {
+      emailInput.setCustomValidity('');
+      return false;
+    }
+
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    emailInput.setCustomValidity(valid ? '' : 'Введите корректный email, например name@company.kz');
+    return valid;
+  };
+
+  const refreshSubmitState = () => {
+    if (!form || !submitBtn || !submissionType) return;
+
+    const type = submissionType.value;
+    const config = branchLabels[type];
+    const valid = Boolean(type) && form.checkValidity();
+
+    submitBtn.disabled = !valid;
+    submitBtn.textContent = !type
+      ? 'Сначала выберите направление'
+      : (valid ? config?.button : 'Заполните все поля');
   };
 
   const summaryLabel = (label, value) => `
@@ -164,16 +233,12 @@
         : 'Выберите направление — ниже появится подходящая форма.';
     }
 
-    if (submitBtn) {
-      submitBtn.disabled = !type;
-      submitBtn.textContent = config?.button || 'Сначала выберите направление';
-    }
-
     if (formStatus) {
-      formStatus.textContent = 'Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.';
+      formStatus.textContent = 'Все поля обязательны. Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.';
     }
 
     updateSubmissionSummary();
+    refreshSubmitState();
   };
 
   if (submissionType) {
@@ -193,8 +258,32 @@
     updateFormBranch();
   }
 
-  form?.addEventListener('input', updateSubmissionSummary);
-  form?.addEventListener('change', updateSubmissionSummary);
+  phoneInput?.addEventListener('input', () => {
+    phoneInput.value = formatPhoneLocal(phoneInput.value);
+    validatePhone();
+    updateSubmissionSummary();
+    refreshSubmitState();
+  });
+
+  phoneInput?.addEventListener('blur', validatePhone);
+
+  emailInput?.addEventListener('input', () => {
+    validateEmail();
+    updateSubmissionSummary();
+    refreshSubmitState();
+  });
+
+  emailInput?.addEventListener('blur', validateEmail);
+
+  form?.addEventListener('input', () => {
+    updateSubmissionSummary();
+    refreshSubmitState();
+  });
+
+  form?.addEventListener('change', () => {
+    updateSubmissionSummary();
+    refreshSubmitState();
+  });
 
   changeDirectionBtn?.addEventListener('click', () => {
     document.querySelector('.direction-selector')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -248,10 +337,14 @@
       return;
     }
 
+    validatePhone();
+    validateEmail();
+
     if (!form.reportValidity()) return;
 
     const fd = new FormData(form);
     const payload = Object.fromEntries(fd.entries());
+    payload.phone = payload.phone ? `+7 ${payload.phone}` : '';
     const selectedConfig = branchLabels[payload.submissionType];
 
     if (submitBtn) {
@@ -278,9 +371,15 @@
         }
 
         form.reset();
+        if (phoneInput) {
+          phoneInput.value = '';
+          phoneInput.setCustomValidity('');
+        }
+        if (emailInput) emailInput.setCustomValidity('');
         if (submissionType) submissionType.value = '';
         updateFormBranch();
         updateSubmissionSummary();
+        refreshSubmitState();
         return;
       }
 
@@ -297,10 +396,7 @@
         formStatus.textContent = 'Не удалось сохранить заявку — открыли резервную отправку через WhatsApp.';
       }
     } finally {
-      if (submitBtn) {
-        submitBtn.disabled = !submissionType?.value;
-        submitBtn.textContent = selectedConfig?.button || 'Сначала выберите направление';
-      }
+      refreshSubmitState();
     }
   });
 })();
