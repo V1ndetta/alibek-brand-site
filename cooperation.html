@@ -74,7 +74,7 @@
           <input id="emailInput" name="email" type="email" inputmode="email" autocomplete="email" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$" placeholder="name@company.kz" title="Введите корректный email, например name@company.kz">
           <small class="field-help">Нужен полный адрес с @ и доменом</small>
         </label>
-        <label><span>Сайт / Instagram / профиль *</span><input name="brandLink" required placeholder="Ссылка, @username или «нет»"></label>
+        <label id="brandLinkField"><span>Сайт / Instagram / профиль *</span><input id="brandLinkInput" name="brandLink" required placeholder="Ссылка, @username или «нет»"></label>
       </div>
     </div>
 
@@ -212,11 +212,6 @@
             <option>Другое</option>
           </select>
         </label>
-      </div>
-
-      <div class="form-grid-2">
-        <label><span>Город компании *</span><input name="city" required placeholder="Например, Астана"></label>
-        <label><span>Масштаб предложения *</span><input name="offerVolume" required placeholder="Например, 120 м² паркета"></label>
       </div>
 
       <label><span>Что именно готовы предоставить? *</span>
