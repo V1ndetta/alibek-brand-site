@@ -19,14 +19,14 @@ module.exports = async function handler(req, res) {
     }
 
     const submissionType = body.submissionType;
-    const required = ['company', 'name', 'phone', 'email', 'brandLink', 'message'];
+    const required = ['company', 'name', 'phone', 'email', 'message'];
 
     if (submissionType === 'business') {
       required.push('businessIntent', 'businessCity', 'businessBudget');
     } else if (submissionType === 'social') {
-      required.push('project', 'supplierCategory', 'contributionType', 'city', 'offerVolume');
+      required.push('brandLink', 'project', 'supplierCategory', 'contributionType');
     } else {
-      required.push('format', 'budget', 'date');
+      required.push('brandLink', 'format', 'budget', 'date');
     }
 
     const missing = required.filter((key) => !String(body[key] || '').trim());
@@ -75,7 +75,6 @@ module.exports = async function handler(req, res) {
       ? [
           'Тип обращения: Бизнес и недвижимость',
           `Компания / контакт: ${body.company}`,
-          `Сайт / Instagram: ${body.brandLink || '—'}`,
           `Цель: ${body.businessIntent || '—'}`,
           `Город / регион: ${body.businessCity || '—'}`,
           `Бюджет / масштаб: ${body.businessBudget || '—'}`,
@@ -91,8 +90,6 @@ module.exports = async function handler(req, res) {
             `Сайт / Instagram: ${body.brandLink || '—'}`,
             `Сфера: ${body.supplierCategory || '—'}`,
             `Формат участия: ${body.contributionType || '—'}`,
-            `Город компании: ${body.city || '—'}`,
-            `Масштаб предложения: ${body.offerVolume || '—'}`,
             '',
             'Что готовы предоставить:',
             body.message || '—'
