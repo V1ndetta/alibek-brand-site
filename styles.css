@@ -1091,3 +1091,18 @@ body[data-page="cooperation"] .direction-grid-three .direction-card.active .dire
   border-color:rgba(126,187,255,.46);
   box-shadow:0 0 16px rgba(58,132,255,.16);
 }
+
+
+/* === MERGED MEDIA + INITIATIVES === */
+.combined-initiatives{
+  scroll-margin-top:110px;
+  border-top:1px solid rgba(112,165,255,.16);
+  background:
+    radial-gradient(circle at 50% 0%,rgba(58,126,240,.08),transparent 34%);
+}
+.combined-initiatives .section-heading{
+  margin-bottom:42px;
+}
+.initiatives-actions{
+  margin-top:0;
+}
