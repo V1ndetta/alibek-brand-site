@@ -77,6 +77,8 @@
   const changeDirectionBtn = document.getElementById('changeDirectionBtn');
   const phoneInput = document.getElementById('phoneInput');
   const emailInput = document.getElementById('emailInput');
+  const brandLinkField = document.getElementById('brandLinkField');
+  const brandLinkInput = document.getElementById('brandLinkInput');
 
   const branchLabels = {
     business: {
@@ -235,6 +237,14 @@
 
     if (commonFields) commonFields.hidden = !type;
 
+    if (brandLinkField && brandLinkInput) {
+      const showBrandLink = Boolean(type) && type !== 'business';
+      brandLinkField.hidden = !showBrandLink;
+      brandLinkInput.disabled = !showBrandLink;
+      brandLinkInput.required = showBrandLink;
+      if (!showBrandLink) brandLinkInput.value = '';
+    }
+
     branches.forEach(branch => {
       setBranchEnabled(branch, branch.dataset.branch === type);
     });
@@ -322,8 +332,7 @@
       `Компания / контакт: ${data.company || '—'}`,
       `Контактное лицо: ${data.name || '—'}`,
       `Телефон: ${data.phone || '—'}`,
-      `Email: ${data.email || '—'}`,
-      `Сайт / Instagram: ${data.brandLink || '—'}`
+      `Email: ${data.email || '—'}`
     ];
 
     if (data.submissionType === 'business') {
@@ -341,11 +350,10 @@
     if (data.submissionType === 'social') {
       return [
         ...common,
+        `Сайт / Instagram: ${data.brandLink || '—'}`,
         `Проект: ${data.project || '—'}`,
         `Сфера: ${data.supplierCategory || '—'}`,
         `Формат участия: ${data.contributionType || '—'}`,
-        `Город: ${data.city || '—'}`,
-        `Масштаб предложения: ${data.offerVolume || '—'}`,
         '',
         'Что готовы предоставить:',
         String(data.message || '')
@@ -354,6 +362,7 @@
 
     return [
       ...common,
+      `Сайт / Instagram: ${data.brandLink || '—'}`,
       `Формат: ${data.format || '—'}`,
       `Бюджет: ${data.budget || '—'}`,
       `Желаемая дата: ${data.date || '—'}`,
