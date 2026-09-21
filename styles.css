@@ -964,10 +964,15 @@ body[data-page="cooperation"] .direction-grid-three .direction-card.active .dire
   align-self:center;
 }
 .home-clean .hero-lead{
-  max-width:540px;
+  max-width:none;
   margin-top:24px;
-  font-size:clamp(17px,1.6vw,22px);
+  font-size:clamp(16px,1.45vw,20px);
   color:#aebdce;
+}
+@media(min-width:981px){
+  .home-clean .hero-lead{
+    white-space:nowrap;
+  }
 }
 .home-about-link{
   display:inline-flex;
