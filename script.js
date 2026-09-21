@@ -281,7 +281,11 @@
     if (['business','media','social'].includes(requestedType)) {
       submissionType.value = requestedType;
       updateFormBranch();
-      setTimeout(() => document.getElementById('brief')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+      setTimeout(() => {
+        if (commonFields && !commonFields.hidden) {
+          commonFields.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 120);
     } else {
       updateFormBranch();
     }
