@@ -11,28 +11,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .home-clean .hero-image-wrap{overflow:hidden}
-    .home-clean .hero-photo-grid{
+    .home-clean .hero-image-wrap{overflow:hidden;background:#05080d}
+    .home-clean .hero-portrait-single{
       position:absolute;
+      inset:0;
       z-index:0;
-      left:0;
-      top:50%;
       width:100%;
-      aspect-ratio:2/3;
-      transform:translateY(-50%);
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      grid-template-rows:repeat(3,minmax(0,1fr));
-      gap:0;
-      background:#05080d;
-    }
-    .home-clean .hero-photo-grid img{
-      display:block;
-      width:100.2%;
-      height:100.2%;
+      height:100%;
       max-width:none;
       object-fit:cover;
-      margin:-.1%;
+      object-position:center 18%;
+      display:block;
     }
     .home-clean .hero-image-wrap:after{z-index:2;pointer-events:none}
     .home-clean .hero-image-glow{z-index:3;pointer-events:none}
@@ -62,14 +51,7 @@
 
       <div class="hero-visual reveal delay-1">
         <div class="hero-image-wrap">
-          <div class="hero-photo-grid" role="img" aria-label="Алибек Ермагамбетов">
-            <img src="assets/hero-tile-00.webp?v=20260923-1" alt="" />
-            <img src="assets/hero-tile-01.webp?v=20260923-1" alt="" />
-            <img src="assets/hero-tile-10.webp?v=20260923-1" alt="" />
-            <img src="assets/hero-tile-11.webp?v=20260923-1" alt="" />
-            <img src="assets/hero-tile-20.webp?v=20260923-1" alt="" />
-            <img src="assets/hero-tile-21.webp?v=20260923-1" alt="" />
-          </div>
+          <img class="hero-portrait-single" src="assets/hero-portrait-whole.webp?v=20260927-1" alt="Алибек Ермагамбетов" />
           <div class="hero-image-glow"></div>
         </div>
       </div>
