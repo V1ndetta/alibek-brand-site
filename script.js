@@ -80,6 +80,7 @@
   const emailInput = document.getElementById('emailInput');
 
   const branchLabels = {
+    business: { hint: 'Расскажите о бизнес-проекте, недвижимости или предложении о партнёрстве.', button: 'Отправить бизнес-предложение' },
     cooperation: {
       hint: 'Заполните бриф на рекламную интеграцию, амбассадорство, мероприятие или спецпроект.',
       button: 'Отправить предложение'
@@ -167,7 +168,7 @@
   const summaryLabel = (label, value) => `
     <div class="submission-summary-item">
       <span>${label}</span>
-      <strong>${value || '—'}</strong>
+      <strong>${String(value || '—').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}</strong>
     </div>
   `;
 
@@ -183,7 +184,7 @@
     }
 
     const getValue = (name) => {
-      const field = form.elements[name];
+      const field = [...form.elements].find(field => field.name === name && !field.disabled);
       return field && !field.disabled ? String(field.value || '').trim() : '';
     };
 
@@ -199,7 +200,7 @@
       ].join('');
     } else {
       submissionSummaryGrid.innerHTML = [
-        summaryLabel('Направление', 'Сотрудничество / реклама'),
+        summaryLabel('Направление', type === 'business' ? 'Бизнес и недвижимость' : 'Медиа и сотрудничество'),
         summaryLabel('Формат', getValue('format')),
         summaryLabel('Бюджет', getValue('budget')),
         summaryLabel('Желаемая дата', getValue('date')),
@@ -379,6 +380,7 @@
         if (emailInput) emailInput.setCustomValidity('');
         if (submissionType) submissionType.value = '';
         updateFormBranch();
+        if (formStatus) formStatus.textContent = 'Предложение отправлено. Менеджер свяжется с вами.';
         updateSubmissionSummary();
         refreshSubmitState();
         return;

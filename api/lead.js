@@ -36,7 +36,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
-    if (!['narodnoe', 'cooperation'].includes(body.submissionType)) {
+    if (!['narodnoe', 'cooperation', 'business'].includes(body.submissionType)) {
       res.statusCode = 400;
       return res.end(JSON.stringify({ ok: false, error: 'Invalid submission type' }));
     }
@@ -82,14 +82,15 @@ module.exports = async function handler(req, res) {
 
     const submittedAt = new Date().toISOString();
     const isProjectLead = submissionType === 'narodnoe';
+    const isBusinessLead = submissionType === 'business';
 
     const title = isProjectLead
       ? `Народное строительство — ${body.company}`
-      : `Сотрудничество — ${body.company}`;
+      : `${isBusinessLead ? 'Бизнес и недвижимость' : 'Сотрудничество'} — ${body.company}`;
 
     const source = isProjectLead
       ? 'Сайт Алибек Ермагамбетов — Народное строительство'
-      : 'Сайт Алибек Ермагамбетов — Сотрудничество';
+      : `Сайт Алибек Ермагамбетов — ${isBusinessLead ? 'Бизнес и недвижимость' : 'Сотрудничество'}`;
 
     const comments = isProjectLead
       ? [
@@ -106,7 +107,7 @@ module.exports = async function handler(req, res) {
           body.message || '—'
         ].join('\n')
       : [
-          'Тип обращения: Сотрудничество / реклама',
+          isBusinessLead ? 'Тип обращения: Бизнес и недвижимость' : 'Тип обращения: Сотрудничество / реклама',
           `Бренд / компания: ${body.company}`,
           `Ссылка на бренд: ${body.brandLink || '—'}`,
           `Формат сотрудничества: ${body.format || '—'}`,
@@ -158,7 +159,7 @@ module.exports = async function handler(req, res) {
       try {
         const sheetFormat = isProjectLead
           ? `Народное строительство · ${body.supplierCategory || '—'}`
-          : (body.format || '');
+          : (isBusinessLead ? `Бизнес и недвижимость · ${body.format || ''}` : (body.format || ''));
 
         const sheetMessage = isProjectLead
           ? [
