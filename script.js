@@ -236,7 +236,7 @@
     }
 
     if (formStatus) {
-      formStatus.textContent = 'Все поля обязательны';
+      formStatus.textContent = 'Все поля обязательны для заполнения';
     }
 
     updateSubmissionSummary();
