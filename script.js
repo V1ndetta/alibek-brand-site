@@ -236,7 +236,7 @@
     }
 
     if (formStatus) {
-      formStatus.textContent = 'Все поля обязательны. Заявка сохраняется в Google Sheets и после подключения Bitrix24 будет автоматически попадать в CRM.';
+      formStatus.textContent = 'Все поля обязательны';
     }
 
     updateSubmissionSummary();
