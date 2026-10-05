@@ -323,8 +323,6 @@
         `Проект: ${data.project || '—'}`,
         `Сфера: ${data.supplierCategory || '—'}`,
         `Формат участия: ${data.contributionType || '—'}`,
-        `Город: ${data.city || '—'}`,
-        `Масштаб предложения: ${data.offerVolume || '—'}`,
         '',
         'Что готовы предоставить:',
         String(data.message || '')

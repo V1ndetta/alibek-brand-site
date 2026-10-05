@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
     const required = ['company', 'name', 'phone', 'email', 'brandLink', 'message'];
 
     if (submissionType === 'narodnoe') {
-      required.push('project', 'supplierCategory', 'contributionType', 'city', 'offerVolume');
+      required.push('project', 'supplierCategory', 'contributionType');
     } else if (submissionType === 'business') {
       required.push('format', 'budget', 'city');
     } else {
@@ -102,8 +102,6 @@ module.exports = async function handler(req, res) {
           `Сайт / Instagram: ${body.brandLink || '—'}`,
           `Сфера: ${body.supplierCategory || '—'}`,
           `Формат участия: ${body.contributionType || '—'}`,
-          `Город компании: ${body.city || '—'}`,
-          `Масштаб предложения: ${body.offerVolume || '—'}`,
           '',
           'Что готовы предоставить:',
           body.message || '—'
@@ -168,8 +166,6 @@ module.exports = async function handler(req, res) {
               `Проект: ${body.project || '—'}`,
               `Сфера: ${body.supplierCategory || '—'}`,
               `Формат участия: ${body.contributionType || '—'}`,
-              `Город: ${body.city || '—'}`,
-              `Масштаб: ${body.offerVolume || '—'}`,
               '',
               'Предложение:',
               body.message || '—'
