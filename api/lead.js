@@ -46,6 +46,8 @@ module.exports = async function handler(req, res) {
 
     if (submissionType === 'narodnoe') {
       required.push('project', 'supplierCategory', 'contributionType', 'city', 'offerVolume');
+    } else if (submissionType === 'business') {
+      required.push('format', 'budget', 'city');
     } else {
       required.push('format', 'budget', 'date');
     }
@@ -110,9 +112,9 @@ module.exports = async function handler(req, res) {
           isBusinessLead ? 'Тип обращения: Бизнес и недвижимость' : 'Тип обращения: Сотрудничество / реклама',
           `Бренд / компания: ${body.company}`,
           `Ссылка на бренд: ${body.brandLink || '—'}`,
-          `Формат сотрудничества: ${body.format || '—'}`,
+          `${isBusinessLead ? 'Цель обращения' : 'Формат сотрудничества'}: ${body.format || '—'}`,
           `Бюджет: ${body.budget || '—'}`,
-          `Желаемая дата: ${body.date || '—'}`,
+          isBusinessLead ? `Город / регион: ${body.city || '—'}` : `Желаемая дата: ${body.date || '—'}`,
           '',
           'Задача:',
           body.message || '—'
@@ -172,7 +174,7 @@ module.exports = async function handler(req, res) {
               'Предложение:',
               body.message || '—'
             ].join('\n')
-          : (body.message || '');
+          : (isBusinessLead ? `Город / регион: ${body.city || '—'}\n\n${body.message || ''}` : (body.message || ''));
 
         const response = await fetch(googleSheetsWebhookUrl, {
           method: 'POST',

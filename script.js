@@ -201,9 +201,9 @@
     } else {
       submissionSummaryGrid.innerHTML = [
         summaryLabel('Направление', type === 'business' ? 'Бизнес и недвижимость' : 'Медиа и сотрудничество'),
-        summaryLabel('Формат', getValue('format')),
-        summaryLabel('Бюджет', getValue('budget')),
-        summaryLabel('Желаемая дата', getValue('date')),
+        summaryLabel(type === 'business' ? 'Цель обращения' : 'Формат', getValue('format')),
+        summaryLabel(type === 'business' ? 'Бюджет / масштаб' : 'Бюджет', getValue('budget')),
+        summaryLabel(type === 'business' ? 'Город / регион' : 'Желаемая дата', getValue(type === 'business' ? 'city' : 'date')),
         summaryLabel('Компания', company)
       ].join('');
     }
@@ -333,9 +333,9 @@
 
     return [
       ...common,
-      `Формат: ${data.format || '—'}`,
+      `${data.submissionType === 'business' ? 'Цель обращения' : 'Формат'}: ${data.format || '—'}`,
       `Бюджет: ${data.budget || '—'}`,
-      `Желаемая дата: ${data.date || '—'}`,
+      data.submissionType === 'business' ? `Город / регион: ${data.city || '—'}` : `Желаемая дата: ${data.date || '—'}`,
       '',
       'Задача:',
       String(data.message || '')

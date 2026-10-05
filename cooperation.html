@@ -67,10 +67,11 @@
     </div>
 
     <div class="form-branch" data-branch="business" hidden>
-      <div class="form-step-heading form-step-divider"><span class="form-step-kicker">Шаг 3 из 3</span><h3>Детали бизнес-предложения</h3><p>Расскажите о проекте, объекте недвижимости или варианте партнёрства.</p></div>
-      <label><span>Тип предложения *</span><select name="format" required><option value="">Выберите направление</option><option>Инвестиции</option><option>Совместный проект</option><option>Земельный участок</option><option>Партнёрство</option><option>Подряд</option><option>Покупка недвижимости</option><option>Другое</option></select></label>
-      <div class="form-grid-2"><label><span>Бюджет / объём инвестиций *</span><input name="budget" required placeholder="Сумма в ₸ или «Обсуждается»"></label><label><span>Желаемая дата начала *</span><input name="date" type="date" required></label></div>
-      <label><span>Описание предложения *</span><textarea name="message" rows="5" required placeholder="Укажите город, объект или проект, условия и желаемый формат участия"></textarea></label>
+      <div class="form-step-heading form-step-divider"><span class="form-step-kicker">Шаг 3 из 3</span><h3>Детали бизнес-обращения</h3><p>Выберите цель обращения и коротко опишите предложение или запрос.</p></div>
+      <div class="form-branch-head"><span>Бизнес и недвижимость</span><p>Для инвестиций, проектов и участков, партнёрства, подрядчиков и покупателей недвижимости.</p></div>
+      <label><span>Цель обращения *</span><select name="format" required><option value="">Выберите вариант</option><option>Инвестиции</option><option>Совместный проект</option><option>Земельный участок</option><option>Партнёрство</option><option>Подряд</option><option>Покупка недвижимости</option><option>Другое</option></select></label>
+      <div class="form-grid-2"><label><span>Город / регион *</span><input name="city" required placeholder="Например, Астана"></label><label><span>Бюджет / масштаб *</span><select name="budget" required><option value="">Выберите диапазон</option><option>До 10 млн ₸</option><option>10–50 млн ₸</option><option>50–100 млн ₸</option><option>100–500 млн ₸</option><option>Более 500 млн ₸</option><option>Обсуждается</option></select></label></div>
+      <label><span>Опишите запрос или предложение *</span><textarea name="message" rows="5" required placeholder="Инвестиция, объект, участок, подряд, покупка недвижимости — укажите главное"></textarea></label>
     </div>
     <div class="form-branch" data-branch="cooperation" hidden>
       <div class="form-step-heading form-step-divider">
