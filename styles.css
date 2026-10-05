@@ -645,3 +645,7 @@ body[data-page="cooperation"] .direction-tags{flex-direction:column;align-items:
 
 /* Keep the selected application fields below the fixed navigation. */
 #commonFields{scroll-margin-top:110px}
+
+/* Original portrait in the shared header brand mark. */
+.brand-portrait{position:relative;overflow:hidden;flex-shrink:0;background:#a5a5a5}
+.brand-portrait img{position:absolute;width:180%;max-width:none;height:auto;left:-23%;top:-65%}
