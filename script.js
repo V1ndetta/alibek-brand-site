@@ -257,7 +257,19 @@
       });
     });
 
+    const requestedDirection = new URLSearchParams(window.location.search).get('direction');
+    const hasRequestedDirection = directionCards.some(card => card.dataset.submissionType === requestedDirection);
+    if (hasRequestedDirection) submissionType.value = requestedDirection;
     updateFormBranch();
+
+    if (hasRequestedDirection) {
+      form.classList.remove('reveal', 'delay-1');
+      const scrollToFields = () => requestAnimationFrame(() => {
+        commonFields?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      });
+      if (document.readyState === 'complete') scrollToFields();
+      else window.addEventListener('load', scrollToFields, { once: true });
+    }
   }
 
   phoneInput?.addEventListener('input', () => {
